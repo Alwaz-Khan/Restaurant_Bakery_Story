@@ -6,6 +6,8 @@ from load_to_postgresql_server import load_to_postgres
 import pandas as pd
 import os
 
+from transform_master_table import transform_master
+from load_to_gsheet_drive import upload_to_google_sheets
 
 def find_mode(base_url):
     if "bakery" in base_url:
@@ -121,8 +123,6 @@ def run_pipeline(
         for task in tasks:
             download_images(task["column"], os.path.join(folder_path, task["folder"]))
 
-    print("\n✅ Pipeline finished.")
-
     return recipe_df, appliance_df
 
 
@@ -131,10 +131,11 @@ if __name__ == "__main__":
     # =========================
     # 🔧 PIPELINE FLAGS
     # =========================
-    RUN_RECIPE_EXTRACT = True
-    RUN_APPLIANCE_EXTRACT = True
-    RUN_IMAGES = True
+    RUN_RECIPE_EXTRACT = False
+    RUN_APPLIANCE_EXTRACT = False
+    RUN_IMAGES = False
     RUN_POSTGRESQL_LOAD = True
+    RUN_UPLOAD_GSHEETS = True
     
 
     # =========================
@@ -170,6 +171,8 @@ if __name__ == "__main__":
     # 🚀 RUN PIPELINE(S)
     # =========================
 
+    final_dfs = []
+    
     for source_name, config in selected_pipelines:
 
         print(f"\n🚀 Running pipeline for: {source_name.upper()}")
@@ -183,12 +186,42 @@ if __name__ == "__main__":
             run_postgresql_load=RUN_POSTGRESQL_LOAD
         )
 
-        recipe_df_prefixed = recipe_df.add_prefix("rcp_")
-        appliance_df_prefixed = appliance_df.add_prefix("appl_")
-
-        merged_df = recipe_df_prefixed.merge(
-            appliance_df_prefixed,
-            left_on="rcp_appl_name",
-            right_on="appl_appl_name",
-            how="inner",
+        # 🔹 LEFT JOIN on appl_name
+        merged_df = recipe_df.merge(
+            appliance_df,
+            on="appl_name",   # make sure column exists in both
+            how="left",
+            suffixes=("", "_drop")   # keep left as-is, mark right duplicates
         )
+
+        # Remove duplicate columns from right table
+        merged_df = merged_df.loc[:, ~merged_df.columns.str.endswith("_drop")]
+
+        # 🔹 Collect result
+        final_dfs.append(merged_df)
+
+
+    if MODE == "both":
+        
+        master_raw_df = pd.concat(final_dfs, ignore_index=True)
+        master_raw_df.to_csv("data/master_raw.csv", index=False)
+        final_master_df = transform_master(master_raw_df)
+
+        if RUN_UPLOAD_GSHEETS:
+
+            upload_to_google_sheets(
+                final_master_df,
+                creds_path=os.getenv("GOOGLE_CREDENTIALS_PATH"),
+                sheet_name=os.getenv("GSHEET_NAME"),
+                worksheet_name=os.getenv("GSHEET_WORKSHEET"),
+            )
+
+    print("✅ Pipeline complete")
+
+
+    
+
+
+
+
+    
