@@ -1,4 +1,5 @@
 from extract_recipe_table import extract_recipes
+from transform_recipe_table import transform_recipes
 from extract_appliances_table import extract_appliances
 from extract_images import download_images
 from load_to_postgresql_server import load_to_postgres
@@ -41,8 +42,9 @@ def run_pipeline(
 
     game_mode = find_mode(base_recipe_url)
     folder_path = os.path.join("data", f"{game_mode}")
-    recipe_filename = "01_recipes_all.csv"
-    appliance_filename = "02_appliances_all.csv"
+    recipe_raw_filename = "01_recipes_all.csv"
+    recipe_clean_filename = "02_recipes_all_clean.csv"
+    appliance_filename = "03_appliances_all.csv"
 
     recipe_df = None
     appliance_df = None
@@ -53,8 +55,13 @@ def run_pipeline(
     if run_recipe_extract:
         print("Step 1: Extracting recipe table...")
         recipe_df = extract_recipes(
-            base_recipe_url, os.path.join(folder_path, recipe_filename)
+            base_recipe_url, os.path.join(folder_path, recipe_raw_filename)
         )
+
+        recipe_df = transform_recipes(
+            os.path.join(folder_path, recipe_raw_filename), os.path.join(folder_path, recipe_clean_filename)
+        )
+    
 
     # =========================
     # STEP 2: Extract Appliances File
@@ -62,12 +69,12 @@ def run_pipeline(
     if run_appliance_extract:
 
         if recipe_df is None:
-            recipe_df = load_dataframe(folder_path, recipe_filename)
+            recipe_df = load_dataframe(folder_path, recipe_raw_filename)
 
         print("Step 3: Extracting appliances table...")
         appliance_df = extract_appliances(
             base_appliance_url,
-            os.path.join(folder_path, recipe_filename),
+            os.path.join(folder_path, recipe_raw_filename),
             os.path.join(folder_path, appliance_filename),
         )
 
@@ -77,7 +84,7 @@ def run_pipeline(
     if run_postgresql_load:
 
         if recipe_df is None:
-            recipe_df = load_dataframe(folder_path, recipe_filename)
+            recipe_df = load_dataframe(folder_path, recipe_clean_filename)
         if appliance_df is None:
             appliance_df = load_dataframe(folder_path, appliance_filename)
 
@@ -91,7 +98,7 @@ def run_pipeline(
         "port": int(os.getenv("DB_PORT", 5432)),
         }
 
-        load_to_postgres(game_mode,os.path.join(folder_path, recipe_filename),os.path.join(folder_path, appliance_filename), db_config)
+        load_to_postgres(game_mode,os.path.join(folder_path, recipe_clean_filename),os.path.join(folder_path, appliance_filename), db_config)
 
     # =========================
     # STEP 4: (Optional) IMAGE DOWNLOAD
@@ -99,7 +106,7 @@ def run_pipeline(
     if run_images:
 
         if recipe_df is None:
-            recipe_df = load_dataframe(folder_path, recipe_filename)
+            recipe_df = load_dataframe(folder_path, recipe_raw_filename)
 
         if appliance_df is None:
             appliance_df = load_dataframe(folder_path, appliance_filename)

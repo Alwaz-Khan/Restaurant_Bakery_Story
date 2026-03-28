@@ -31,12 +31,12 @@ def ensure_sheet_size(sheet, required_rows, required_cols):
 # =========================
 PIPELINE_CONFIG = {
     "restaurant": {
-        "recipe_file": "data/restaurant/01_recipes_all.csv",
-        "appliance_file": "data/restaurant/02_appliances_all.csv",
+        "recipe_file": "data/restaurant/02_recipes_all_clean.csv",
+        "appliance_file": "data/restaurant/03_appliances_all.csv",
     },
     "bakery": {
-        "recipe_file": "data/bakery/01_recipes_all.csv",
-        "appliance_file": "data/bakery/02_appliances_all.csv",
+        "recipe_file": "data/bakery/02_recipes_all_clean.csv",
+        "appliance_file": "data/bakery/03_appliances_all.csv",
     },
 }
 

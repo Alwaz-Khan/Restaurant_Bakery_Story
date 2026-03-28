@@ -154,13 +154,13 @@ if __name__ == "__main__":
         }
 
     RECIPE = {
-        "restaurant": "data_test/restaurant/01_recipes_all.csv",
-        "bakery": "data_test/bakery/01_recipes_all.csv"
+        "restaurant": "data_test/restaurant/02_recipes_all_clean.csv",
+        "bakery": "data_test/bakery/02_recipes_all_clean.csv"
     }
 
     APPLIANCE = {
-        "restaurant": "data_test/restaurant/02_appliances_all.csv",
-        "bakery": "data_test/bakery/02_appliances_all.csv"
+        "restaurant": "data_test/restaurant/03_appliances_all.csv",
+        "bakery": "data_test/bakery/03_appliances_all.csv"
     }
     
 
