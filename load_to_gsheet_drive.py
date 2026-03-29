@@ -72,7 +72,7 @@ def upload_dataframe_to_sheet(sheet, df, chunk_size=1000):
 # =========================
 # 🚀 PUBLIC FUNCTION (THIS IS WHAT YOU IMPORT)
 # =========================
-def upload_to_google_sheets(df, creds_path, sheet_name, worksheet_name):
+def upload_to_google_sheets(df, creds_path, spreadsheet_name, worksheet_name):
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive",
@@ -82,7 +82,7 @@ def upload_to_google_sheets(df, creds_path, sheet_name, worksheet_name):
     client = gspread.authorize(creds)
 
 
-    sheet = client.open(sheet_name).worksheet(worksheet_name)
+    sheet = client.open(spreadsheet_name).worksheet(worksheet_name)
 
     upload_dataframe_to_sheet(sheet, df)
 
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     upload_to_google_sheets(
         df,
         creds_path=os.getenv("GOOGLE_CREDENTIALS_PATH"),
-        sheet_name=os.getenv("GSHEET_NAME"),
+        spreadsheet_name=os.getenv("GSHEET_NAME"),
         worksheet_name=os.getenv("GSHEET_WORKSHEET"),
     )
 

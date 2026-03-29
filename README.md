@@ -51,7 +51,6 @@ This project uses publicly available data from the referenced website.
 All credit for raw data goes to the original source.
 
 🧠 Future Improvements (Optional Ideas)
-1. Separate data transformation included in google sheet upload script into a separate script.
 2. Separate data transformation included in postgresql script into a separate script.
 3. In case of multiple recipe qualifying for max xp, need to create a further subfilter where it then chooses the recipe which gives max profit and same criterio for max profit recipes as well.
 4. postgresql takes the 4 files separately and the google sheet script first combines all the 4 scripts into 1 master and then upload it, can separate the combined file from google sheet script and use the same to upload to postgresql, but that would merge the 2 separate sources of truth that is maintained currently.

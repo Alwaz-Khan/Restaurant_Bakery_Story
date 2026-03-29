@@ -8,6 +8,7 @@ import os
 
 from transform_master_table import transform_master
 from load_to_gsheet_drive import upload_to_google_sheets
+from load_result_to_gsheet import push_result_gsheet
 
 def find_mode(base_url):
     if "bakery" in base_url:
@@ -212,9 +213,15 @@ if __name__ == "__main__":
             upload_to_google_sheets(
                 final_master_df,
                 creds_path=os.getenv("GOOGLE_CREDENTIALS_PATH"),
-                sheet_name=os.getenv("GSHEET_NAME"),
+                spreadsheet_name=os.getenv("GSHEET_NAME"),
                 worksheet_name=os.getenv("GSHEET_WORKSHEET"),
             )
+            push_result_gsheet(
+                creds_path=os.getenv("GOOGLE_CREDENTIALS_PATH"),
+                spreadsheet_name=os.getenv("GSHEET_NAME"),
+                worksheet_name=os.getenv("GSHEET_WORKSHEET2"),
+            )
+
 
     print("✅ Pipeline complete")
 
