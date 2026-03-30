@@ -136,7 +136,7 @@ if __name__ == "__main__":
     RUN_APPLIANCE_EXTRACT = False
     RUN_IMAGES = False
     RUN_POSTGRESQL_LOAD = True
-    RUN_UPLOAD_GSHEETS = True
+    RUN_UPLOAD_GSHEETS = False
     
 
     # =========================
@@ -207,6 +207,8 @@ if __name__ == "__main__":
         master_raw_df = pd.concat(final_dfs, ignore_index=True)
         master_raw_df.to_csv("data/master_raw.csv", index=False)
         final_master_df = transform_master(master_raw_df)
+
+        final_master_df.to_json("site/master_table.json", orient="records", indent=2)
 
         if RUN_UPLOAD_GSHEETS:
 

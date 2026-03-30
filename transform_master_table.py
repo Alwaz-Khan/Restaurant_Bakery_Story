@@ -53,5 +53,5 @@ if __name__ == "__main__":
     
 
     # Optional: save output
-    final_df.to_csv("data/master.csv", index=False)
+    final_df.to_csv("data/master_table.csv", index=False)
     print("✅ Saved master.csv")

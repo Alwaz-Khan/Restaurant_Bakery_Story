@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Story Kitchen · Recipe Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─────────────────────────────────────────
+       TOKENS — restaurant default
+    ───────────────────────────────────────── */
+    :root {
+      --a:        #ff6b35;
+      --b:        #ffb347;
+      --bg:       #fff8f2;
+      --surface:  #ffffff;
+      --border:   #ffe2cc;
+      --ink:      #26160a;
+      --ink2:     #7a5540;
+      --muted:    #c4a080;
+      --xp:       #2d54d4;
+      --xp-bg:    #eef1ff;
+      --gp:       #1a8a40;
+      --gp-bg:    #edfaf3;
+      --shadow:   rgba(255,107,53,.13);
+      --glow:     rgba(255,107,53,.38);
+      --pill-off-bg:  #fff0e8;
+      --pill-off-bd:  #ffd4b8;
+      --pill-off-txt: #c06030;
+      --row-alt:  #fffaf6;
+      --tag-xp:   #dce6ff;
+      --tag-gp:   #d4f3e4;
+    }
+    body.bakery {
+      --a:        #d63b88;
+      --b:        #ff8fbf;
+      --bg:       #fff5f9;
+      --border:   #ffd0e8;
+      --ink:      #2a0e1c;
+      --ink2:     #7a4060;
+      --muted:    #c490a8;
+      --xp:       #7230e0;
+      --xp-bg:    #f2eeff;
+      --shadow:   rgba(214,59,136,.12);
+      --glow:     rgba(214,59,136,.36);
+      --pill-off-bg:  #fff0f6;
+      --pill-off-bd:  #ffc8de;
+      --pill-off-txt: #b83878;
+      --row-alt:  #fff8fb;
+      --tag-xp:   #ecdcff;
+    }
+
+    /* ─────────────────────────────────────────
+       RESET
+    ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      font-family: 'Nunito', sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+      transition: background .3s;
+    }
+
+    /* ─────────────────────────────────────────
+       TOP BAR
+    ───────────────────────────────────────── */
+    .topbar {
+      position: sticky; top: 0; z-index: 200;
+      height: 50px;
+      background: linear-gradient(100deg, var(--a) 0%, var(--b) 100%);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      box-shadow: 0 2px 12px var(--shadow);
+      transition: background .3s;
+    }
+    .topbar::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle, rgba(255,255,255,.13) 1px, transparent 1px);
+      background-size: 16px 16px;
+      pointer-events: none;
+    }
+    .topbar-left {
+      display: flex; align-items: center; gap: 7px; z-index: 1;
+    }
+    #top-emoji { font-size: 1.3rem; line-height: 1; }
+    #top-name {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem; color: #fff;
+      text-shadow: 0 1px 5px rgba(0,0,0,.18);
+      transition: opacity .2s, transform .2s;
+    }
+    .topbar-right {
+      font-size: 10px; font-weight: 800; letter-spacing: 1.8px;
+      text-transform: uppercase; color: rgba(255,255,255,.72); z-index: 1;
+    }
+
+    /* ─────────────────────────────────────────
+       FILTER STRIP  — compact, all on one card
+    ───────────────────────────────────────── */
+    .filters {
+      max-width: 560px; margin: 0 auto;
+      padding: 12px 14px 0;
+    }
+    .filter-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 14px;
+      box-shadow: 0 3px 16px var(--shadow);
+      display: flex; flex-direction: column; gap: 10px;
+      transition: border-color .3s, box-shadow .3s;
+    }
+
+    /* ── each filter row ── */
+    .frow {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .flabel {
+      font-size: 9px; font-weight: 900;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); white-space: nowrap;
+      min-width: 74px;
+    }
+
+    /* ── pill track (segmented control) ── */
+    .seg {
+      display: flex;
+      background: var(--pill-off-bg);
+      border: 1.5px solid var(--pill-off-bd);
+      border-radius: 50px;
+      padding: 2px;
+      gap: 2px;
+      flex: 1;
+    }
+    .seg-btn {
+      flex: 1;
+      background: none; border: none;
+      border-radius: 50px;
+      color: var(--pill-off-txt);
+      cursor: pointer;
+      font-family: 'Fredoka One', cursive;
+      font-size: 13px;
+      padding: 5px 8px;
+      text-align: center;
+      white-space: nowrap;
+      transition: background .16s, color .16s, box-shadow .16s;
+      user-select: none;
+    }
+    .seg-btn.active {
+      background: var(--a);
+      color: #fff;
+      box-shadow: 0 2px 8px var(--glow);
+    }
+
+    /* ── level stepper ── */
+    .stepper {
+      display: flex; align-items: center;
+      background: var(--pill-off-bg);
+      border: 1.5px solid var(--pill-off-bd);
+      border-radius: 50px;
+      overflow: hidden;
+    }
+    .step-btn {
+      background: none; border: none;
+      color: var(--a); cursor: pointer;
+      font-size: 1rem; font-weight: 900;
+      padding: 5px 11px; line-height: 1;
+      transition: background .12s;
+    }
+    .step-btn:hover { background: rgba(0,0,0,.05); }
+    input#level {
+      background: none; border: none;
+      color: var(--ink);
+      font-family: 'Fredoka One', cursive;
+      font-size: .95rem; text-align: center;
+      width: 40px; padding: 5px 0;
+    }
+    input#level:focus { outline: none; }
+    input#level::-webkit-inner-spin-button { display: none; }
+
+    /* ─────────────────────────────────────────
+       RESULTS AREA
+    ───────────────────────────────────────── */
+    .results-wrap {
+      max-width: 560px; margin: 0 auto;
+      padding: 12px 14px 80px;
+    }
+
+    /* section meta line */
+    .results-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px; padding: 0 2px;
+    }
+    .results-meta-title {
+      font-size: 9px; font-weight: 900;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    }
+    .results-count {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+    }
+
+    /* column legend */
+    .col-legend {
+      display: grid;
+      grid-template-columns: 60px 1fr 1fr;
+      gap: 0 8px;
+      padding: 0 12px 6px;
+    }
+    .leg { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+    .leg.xp-col  { color: var(--xp); }
+    .leg.gp-col  { color: var(--gp); }
+
+    /* ── result row ── */
+    .rrow {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px var(--shadow);
+      animation: riseIn .22s ease both;
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .rrow:hover {
+      box-shadow: 0 4px 18px var(--shadow);
+      border-color: var(--a);
+    }
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* inside the row: 3-column grid */
+    .rrow-inner {
+      display: grid;
+      grid-template-columns: 60px 1fr 1fr;
+      gap: 0;
+      align-items: stretch;
+    }
+
+    /* time cell */
+    .rcell-time {
+      background: linear-gradient(160deg, var(--a), var(--b));
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 10px 6px;
+      transition: background .3s;
+    }
+    .time-icon  { font-size: 1rem; line-height: 1; margin-bottom: 2px; }
+    .time-value {
+      font-family: 'Fredoka One', cursive;
+      font-size: .82rem; color: #fff;
+      text-align: center; line-height: 1.2;
+      text-shadow: 0 1px 4px rgba(0,0,0,.18);
+    }
+
+    /* recipe cell */
+    .rcell {
+      padding: 9px 10px 9px 10px;
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; justify-content: center;
+      gap: 3px;
+      min-width: 0;
+    }
+    .rcell:last-child { background: var(--row-alt); }
+
+    .rcell-tag {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 8.5px; font-weight: 900; letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 2px 6px; border-radius: 50px;
+      width: fit-content; margin-bottom: 1px;
+    }
+    .rcell-tag.xp  { background: var(--tag-xp);  color: var(--xp); }
+    .rcell-tag.gp  { background: var(--tag-gp);  color: var(--gp); }
+
+    .rcell-name {
+      font-size: 13px; font-weight: 800; color: var(--ink);
+      line-height: 1.25;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .rcell-stats {
+      display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+      margin-top: 1px;
+    }
+    .stat-val {
+      font-family: 'Fredoka One', cursive;
+      font-size: 13px;
+    }
+    .stat-val.xp { color: var(--xp); }
+    .stat-val.gp { color: var(--gp); }
+
+    .stat-rate {
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      background: var(--border); border-radius: 50px;
+      padding: 1px 6px; white-space: nowrap;
+    }
+
+    /* ─────────────────────────────────────────
+       EMPTY
+    ───────────────────────────────────────── */
+    .empty {
+      text-align: center; padding: 48px 20px; color: var(--muted);
+    }
+    .empty-icon { font-size: 2.6rem; display: block; margin-bottom: 10px; }
+    .empty p    { font-size: 14px; font-weight: 600; line-height: 1.7; }
+
+    /* ─────────────────────────────────────────
+       HIDDEN TABLE
+    ───────────────────────────────────────── */
+    #results-table { display: none; }
+
+    /* ─────────────────────────────────────────
+       RESPONSIVE — very small screens
+    ───────────────────────────────────────── */
+    @media (max-width: 360px) {
+      .rrow-inner { grid-template-columns: 52px 1fr 1fr; }
+      .rcell-name { font-size: 12px; }
+      .flabel { min-width: 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span id="top-emoji">🍔</span>
+      <span id="top-name">Restaurant Story</span>
+    </div>
+    <span class="topbar-right">Recipe Planner</span>
+  </header>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <div class="filter-card">
+
+      <div class="frow">
+        <span class="flabel">Game</span>
+        <div class="seg" id="seg-mode">
+          <button class="seg-btn active" data-val="restaurant" onclick="setMode('restaurant')">🍽 Restaurant</button>
+          <button class="seg-btn"        data-val="bakery"     onclick="setMode('bakery')">🥐 Bakery</button>
+        </div>
+      </div>
+
+      <div class="frow">
+        <span class="flabel">Difficulty</span>
+        <div class="seg" id="seg-diff">
+          <button class="seg-btn"        data-val="easy"   onclick="setDiff('easy')">Easy</button>
+          <button class="seg-btn"        data-val="medium" onclick="setDiff('medium')">Medium</button>
+          <button class="seg-btn active" data-val="hard"   onclick="setDiff('hard')">Hard</button>
+        </div>
+      </div>
+
+      <div class="frow">
+        <span class="flabel">Chef Level</span>
+        <div class="stepper">
+          <button class="step-btn" onclick="stepLevel(-1)">−</button>
+          <input id="level" type="number" value="99" min="1" max="99">
+          <button class="step-btn" onclick="stepLevel(1)">+</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-wrap">
+    <div class="results-meta" id="results-meta" style="visibility:hidden">
+      <span class="results-meta-title">Best Recipes</span>
+      <span class="results-count" id="results-count"></span>
+    </div>
+
+    <div class="col-legend" id="col-legend" style="visibility:hidden">
+      <span class="leg">Time</span>
+      <span class="leg xp-col">⭐ Best XP</span>
+      <span class="leg gp-col">💰 Best Profit</span>
+    </div>
+
+    <div id="results-container">
+      <div class="empty">
+        <span class="empty-icon">🍽️</span>
+        <p>Loading your best recipes…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden table script.js writes into -->
+  <table id="results-table">
+    <thead>
+      <tr>
+        <th>Return Time</th>
+        <th>Best XP Recipe</th><th>XP</th><th>XP/Hr</th>
+        <th>Best Profit Recipe</th><th>Profit</th><th>Profit/Hr</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+
+  <script src="script.js"></script>
+
+  <script>
+    /* ── STATE ── */
+    let mode = 'restaurant';
+    let diff = 'hard';
+
+    const modeEmoji = { restaurant: '🍔', bakery: '🥐' };
+    const modeName  = { restaurant: 'Restaurant Story', bakery: 'Bakery Story' };
+
+    /* ── SEGMENTED CONTROLS ── */
+    function setMode(m) {
+      mode = m;
+      document.body.classList.toggle('bakery', m === 'bakery');
+      // top bar name
+      const el = document.getElementById('top-name');
+      el.style.cssText = 'opacity:0;transform:translateY(4px)';
+      setTimeout(() => {
+        document.getElementById('top-emoji').textContent = modeEmoji[m];
+        el.textContent = modeName[m];
+        el.style.cssText = 'transition:opacity .2s,transform .2s;opacity:1;transform:translateY(0)';
+      }, 160);
+      // pills
+      document.querySelectorAll('#seg-mode .seg-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.val === m));
+      refresh();
+    }
+
+    function setDiff(d) {
+      diff = d;
+      document.querySelectorAll('#seg-diff .seg-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.val === d));
+      refresh();
+    }
+
+    /* ── LEVEL STEPPER ── */
+    function stepLevel(delta) {
+      const el = document.getElementById('level');
+      el.value = Math.min(99, Math.max(1, (parseInt(el.value) || 1) + delta));
+      refresh();
+    }
+    document.getElementById('level').addEventListener('change', refresh);
+
+    /* ── SYNC HIDDEN SELECTS ── */
+    function ensureSelect(id, val) {
+      let el = document.getElementById(id);
+      if (!el) {
+        el = Object.assign(document.createElement('select'),
+          { id, style: 'display:none' });
+        document.body.appendChild(el);
+      }
+      if (!el.querySelector(`option[value="${val}"]`)) {
+        el.appendChild(Object.assign(document.createElement('option'),
+          { value: val, textContent: val }));
+      }
+      el.value = val;
+    }
+
+    /* ── MAIN REFRESH ── */
+    function refresh() {
+      ensureSelect('mode',       mode);
+      ensureSelect('difficulty', diff);
+      if (typeof render === 'function') render();
+      paint();
+    }
+
+    /* ── PAINT RESULTS ── */
+    function paint() {
+      const rows      = Array.from(document.querySelectorAll('#table-body tr'));
+      const container = document.getElementById('results-container');
+      const meta      = document.getElementById('results-meta');
+      const legend    = document.getElementById('col-legend');
+      const count     = document.getElementById('results-count');
+
+      const valid = rows.filter(r => r.querySelectorAll('td').length >= 7);
+
+      if (!valid.length) {
+        meta.style.visibility = 'hidden';
+        legend.style.visibility = 'hidden';
+        container.innerHTML = `
+          <div class="empty">
+            <span class="empty-icon">😕</span>
+            <p>No recipes match<br>these settings.</p>
+          </div>`;
+        return;
+      }
+
+      meta.style.visibility  = 'visible';
+      legend.style.visibility = 'visible';
+      count.textContent = `${valid.length} cook time${valid.length > 1 ? 's' : ''}`;
+
+      container.innerHTML = valid.map((row, i) => {
+        const c = row.querySelectorAll('td');
+        const time       = c[0].textContent.trim();
+        const xpRecipe   = c[1].textContent.trim();
+        const xp         = c[2].textContent.trim();
+        const xpRate     = c[3].textContent.trim();
+        const gpRecipe   = c[4].textContent.trim();
+        const gp         = c[5].textContent.trim();
+        const gpRate     = c[6].textContent.trim();
+
+        return `
+        <div class="rrow" style="animation-delay:${i * .035}s">
+          <div class="rrow-inner">
+
+            <div class="rcell-time">
+              <span class="time-icon">⏱</span>
+              <span class="time-value">${time}</span>
+            </div>
+
+            <div class="rcell">
+              <span class="rcell-tag xp">⭐ XP</span>
+              <div class="rcell-name" title="${xpRecipe}">${xpRecipe}</div>
+              <div class="rcell-stats">
+                <span class="stat-val xp">${xp}</span>
+                <span class="stat-rate">↗ ${xpRate}/hr</span>
+              </div>
+            </div>
+
+            <div class="rcell">
+              <span class="rcell-tag gp">💰 Profit</span>
+              <div class="rcell-name" title="${gpRecipe}">${gpRecipe}</div>
+              <div class="rcell-stats">
+                <span class="stat-val gp">${gp}</span>
+                <span class="stat-rate">↗ ${gpRate}/hr</span>
+              </div>
+            </div>
+
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    /* ── AUTO-LOAD on start ── */
+    window.addEventListener('load', refresh);
+  </script>
+
+</body>
+</html>
