@@ -12,17 +12,8 @@ fetch("./master_table.json")
   });
 
 
-fetch("./master_table.json")
-  .then(res => res.json())
-  .then(json => {
-    data = json;
-    console.log("Data loaded:", data.length, "rows");
-    console.log("Sample row:", data[0]);
-    render();
-  })
-  .catch(err => {
-    console.error("Failed to load JSON:", err);
-  });
+data = masterData;
+render();
 
 function checkDifficulty(filter, value) {
   if (filter === "easy") return value === 2;
@@ -66,6 +57,7 @@ function render() {
     const xpBest = getBest({ ...filters, return_time }, "rcp_xp");
     const profitBest = getBest({ ...filters, return_time }, "rcp_profit");
 
+
     const rowHTML = `
       <tr>
         <td>${formatTime(return_time)}</td>
@@ -74,11 +66,13 @@ function render() {
         <td>${xpBest?.appl_name || "-"}</td>
         <td>${xpBest?.rcp_xp || "-"}</td>
         <td>${xpBest ? Math.round((xpBest.rcp_xp * 60) / return_time) : "-"}</td>
+        <td>${xpBest?.rcp_img_url || ""}</td>
 
         <td>${profitBest?.rcp_name || "-"}</td>
         <td>${profitBest?.appl_name || "-"}</td>
         <td>${profitBest?.rcp_profit || "-"}</td>
         <td>${profitBest ? Math.round((profitBest.rcp_profit * 60) / return_time) : "-"}</td>
+        <td>${profitBest?.rcp_img_url || ""}</td>
       </tr>
     `;
 

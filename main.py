@@ -5,6 +5,7 @@ from extract_images import download_images
 from load_to_postgresql_server import load_to_postgres
 import pandas as pd
 import os
+import json
 
 from transform_master_table import transform_master
 from load_to_gsheet_drive import upload_to_google_sheets
@@ -132,11 +133,11 @@ if __name__ == "__main__":
     # =========================
     # 🔧 PIPELINE FLAGS
     # =========================
-    RUN_RECIPE_EXTRACT = False
-    RUN_APPLIANCE_EXTRACT = False
-    RUN_IMAGES = False
+    RUN_RECIPE_EXTRACT = True
+    RUN_APPLIANCE_EXTRACT = True
+    RUN_IMAGES = True
     RUN_POSTGRESQL_LOAD = True
-    RUN_UPLOAD_GSHEETS = False
+    RUN_UPLOAD_GSHEETS = True
     
 
     # =========================
@@ -208,7 +209,15 @@ if __name__ == "__main__":
         master_raw_df.to_csv("data/master_raw.csv", index=False)
         final_master_df = transform_master(master_raw_df)
 
-        final_master_df.to_json("site/master_table.json", orient="records", indent=2)
+        final_master_df.to_json("data/master_table.json", orient="records", indent=2)
+        
+        with open("docs/master_table.js", "w") as f:
+            f.write("const masterData = ")
+            f.write(final_master_df.to_json(orient="records", indent=2))
+            f.write(";")
+
+        print("Done! master_table.js created.")
+
 
         if RUN_UPLOAD_GSHEETS:
 
